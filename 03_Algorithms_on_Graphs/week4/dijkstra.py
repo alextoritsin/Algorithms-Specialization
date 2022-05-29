@@ -6,6 +6,9 @@ from queue import Queue
 import math
 
 def BuildHeap(array, size):
+    """Builds binary heap from array
+       Returns proxy array to store
+       indexes of items in heap"""
     proxy_arr = list(range(size))
     for i in range(size // 2, -1, -1):
         SiftDown(array, i, size, proxy_arr)
@@ -13,6 +16,7 @@ def BuildHeap(array, size):
 
 
 def SiftDown(array:list, i, size, proxy_arr:list):
+    """Pushed element of heap to bottom"""
     if 2 * i + 1 >= size:
         return
 
@@ -36,6 +40,7 @@ def SiftDown(array:list, i, size, proxy_arr:list):
 
 
 def SiftUp(array, i, proxy_arr:list):
+    """Pushes element of heap to top"""
     while i > 0 and array[Parent(i)][1] > array[i][1]:
         # get the nodes we're about to change
         p_node, i_node = array[Parent(i)][0], array[i][0]
@@ -51,6 +56,7 @@ def Parent(i):
 
 
 def ChangePriority(array, i, value, proxy_arr, size):
+    """Changes value of item in heap"""
     oldp = array[i][1]
     array[i][1] = value
     if value > oldp:
@@ -60,6 +66,7 @@ def ChangePriority(array, i, value, proxy_arr, size):
 
 
 def ExtractMin(array:list, size, proxy_arr:list):
+    """Extract vertex with min value from heap"""
     # get min node in heap
     min_node = array[0][0]
     # replace first node in heap with last
@@ -75,11 +82,13 @@ def ExtractMin(array:list, size, proxy_arr:list):
 
 
 def distance(adj, cost, s, t, n):
+    """Finds shortest path in graph
+       from vert s to vert t using Dijkstra algorithm."""
     dist = [float('inf') for _ in range(n)]
     prev = [None for _ in range(n)]
     dist[s] = 0
     heap = [[i, dist[i]] for i in range(n)]
-    proxy_arr = BuildHeap(heap, n)
+    proxy_arr = BuildHeap(heap, n)  # proxy_arr used to store indexes of elem in heap
 
     while n:
         u, n = ExtractMin(heap, n, proxy_arr)
@@ -95,6 +104,7 @@ def distance(adj, cost, s, t, n):
 
 
 def naive_dist(adj, cost, s, t, n):
+    "Finds shortest path using BFS"
     dist = [float('inf') for _ in range(n)]
     prev = [None for _ in range(n)]
     dist = [float('inf')] * n # initialize inf for every dist
@@ -125,6 +135,9 @@ if __name__ == '__main__':
         cost[a - 1].append(w)
     s, t = data[0] - 1, data[1] - 1
     print(distance(adj, cost, s, t, n))
+
+    """Stress test functions"""
+
     # print(naive_dist(adj, cost, s, t, n))
     # print("Dijkstra:", distance(adj, cost, s, t, n))
     # print("Naive:", naive_dist(adj, cost, s, t, n))
