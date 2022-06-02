@@ -16,12 +16,12 @@ def BuildHeap(array, size):
 
 
 def SiftDown(array:list, i, size, proxy_arr:list):
-    """Pushed element of heap to bottom"""
+    """Pushes element of heap to bottom"""
     if 2 * i + 1 >= size:
         return
 
     minindex = i
-    left, right = 2 * i + 1, 2 * i + 2
+    left, right = 2 * i + 1, 2 * i + 2  # find left and right childs
 
     if left < size and array[left][1] < array[minindex][1]:
         minindex = left
@@ -94,7 +94,7 @@ def distance(adj, cost, s, t, n):
         u, n = ExtractMin(heap, n, proxy_arr)
       
         for i, vert in enumerate(adj[u]):
-            if dist[vert] > dist[u] + cost[u][i]:
+            if dist[vert] > dist[u] + cost[u][i]:  # change dist to vert if found smaller value
                 dist[vert] = dist[u] + cost[u][i]
                 prev[vert] = u
                 ChangePriority(heap, proxy_arr[vert], dist[vert], proxy_arr, n)

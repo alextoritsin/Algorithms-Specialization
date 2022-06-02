@@ -2,9 +2,40 @@
 
 import sys
 
+def relax_edges(adj:list, cost:list, dist:list):
+    for i, u in enumerate(adj):
+        for j, v in enumerate(u):
+            if dist[v] > dist[i] + cost[i][j]:
+                dist[v] = dist[i] + cost[i][j]
+    
 
-def negative_cycle(adj, cost):
-    #write your code here
+
+def negative_cycle(adj, cost, n):
+    """Checks for negative cycle in graph
+       using Bellman-Ford algorithm"""
+    # for every start vertex check if we have negative cycle
+    for vert in range(n):
+        # initialize dist array
+        dist = [float('inf')] * n
+        dist[vert] = 0               
+        # relax edges while something changes or
+        # number of iterations less or equal to num. of vert
+        ok = False
+        count = 0
+        while not ok and count <= n:
+
+            ok = True
+            for i, u in enumerate(adj):
+                for j, v in enumerate(u):
+                    if dist[v] > dist[i] + cost[i][j]:
+                        dist[v] = dist[i] + cost[i][j]
+                        ok = False                        
+            count += 1
+
+        # if iterations more than vert - we have a neg. cycle.
+        if count > n:
+            return 1
+    
     return 0
 
 
@@ -20,4 +51,4 @@ if __name__ == '__main__':
     for ((a, b), w) in edges:
         adj[a - 1].append(b - 1)
         cost[a - 1].append(w)
-    print(negative_cycle(adj, cost))
+    print(negative_cycle(adj, cost, n))
