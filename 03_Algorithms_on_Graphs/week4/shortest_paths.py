@@ -1,7 +1,5 @@
 #Uses python3
 
-from math import floor
-import re
 import sys
 from queue import Queue
 
@@ -14,8 +12,9 @@ def relax_edges(adj:list, cost:list, dist:list, prev:list):
                 
 
 def shortest_paths(adj, cost, s, distance, n):
-    """Defines distance from node s
-       to all other nodes"""
+    """Defines the distance from node s
+       to all other nodes in a graph
+       with possibly neg. edges"""
     # initialize dist array
     distance[s] = 0
     prev = [None] * n
@@ -34,6 +33,7 @@ def shortest_paths(adj, cost, s, distance, n):
                 distance[v] = float('-inf')
 
     # BFS all nodes reachable from negative cycle
+    # and set -inf value to this nodes
     q = Queue()
     [q.put(i) for i in neg_region]
     while not q.empty():
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     s = data[0]
     s -= 1
     distance = [float('inf')] * n
-    
+
     shortest_paths(adj, cost, s, distance, n)
 
     for x in range(n):
