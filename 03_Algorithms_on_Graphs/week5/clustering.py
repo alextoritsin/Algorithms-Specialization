@@ -3,27 +3,6 @@ import sys
 import math
 
 
-# cost = [[i, float('inf')] for i in range(n)]
-#     parent = [None] * n
-#     cost[0][1] = 0
-#     proxy_arr = BuildHeap(cost, n)
-
-#     nodes_left = set(range(n))
-#     while n:
-#         min_dist = float('inf')
-#         vert, n = ExtractMin(cost, n, proxy_arr)
-#         nodes_left = nodes_left - {vert}
-#         for node in nodes_left:
-#             d = distance(x[vert], x[node], y[vert], y[node])
-#             if cost[proxy_arr[node]][1] > d:
-#                 cost[proxy_arr[node]][1] = d
-#                 if d < min_dist:
-#                     min_dist = d
-#                     ChangePriority(cost, proxy_arr[node], d, proxy_arr, n)
-#         result += min_dist
-            
-#     return result
-
 
 def Find(i, parent:list):
     """Finds parent of element i
@@ -45,16 +24,55 @@ def Union(i, j, parent:list, rank:list):
         return
 
     if rank[i_id] > rank[j_id]:
-        parent[j_id] == i_id
+        parent[j_id] = i_id
     else:
-        parent[i_id] == j_id
+        parent[i_id] = j_id
         # if rank are equal, increase i rank by 1
         if rank[i_id] == rank[j_id]:
             rank[j_id] += 1
 
-def clustering(x, y, k):
-    #write your code here
-    return -1.
+
+def distance(x1, x2, y1, y2):
+    return math.sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))
+            
+
+def clustering(x, y, k, n):
+    """Computes the minimum distance
+       between k clasters of n points
+       using Kruskal algorithm"""
+    parent = list(range(n))
+    rank = [0] * n
+    nodes = set(range(n))
+    processed = set() 
+    edges = [0] * ((n * (n - 1)) // 2) if n > 1 else [0]
+    edge = 0
+
+    # get all posible edges
+    for i in range(n):
+        for j in (nodes - {i} - processed):
+            edges[edge] = ((i, j), distance(x[i], x[j], y[i], y[j]))
+            edge += 1
+
+        processed.add(i)
+
+    if n == 2:
+        return edges[0][1]
+    else:
+        edges.sort(key=lambda x: x[1])
+        if n == k:
+            return edges[0][1]
+        else:
+            i = 0
+            # go throught all edges until having k clasters
+            while n >= k:
+                ((u, v), dist) = edges[i]
+                if Find(u, parent) != Find(v, parent):
+                    # union sets to decrease num. of clasters
+                    Union(u, v, parent, rank)
+                    n -= 1
+                i += 1
+
+            return dist
 
 
 if __name__ == '__main__':
@@ -66,4 +84,4 @@ if __name__ == '__main__':
     y = data[1:2 * n:2]
     data = data[2 * n:]
     k = data[0]
-    print("{0:.9f}".format(clustering(x, y, k)))
+    print("{0:.9f}".format(clustering(x, y, k, n)))
