@@ -3,7 +3,6 @@ import sys
 import math
 
 
-
 def Find(i, parent:list):
     """Finds parent of element i
        with pass compression heuristic"""
