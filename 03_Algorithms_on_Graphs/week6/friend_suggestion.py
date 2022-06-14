@@ -208,13 +208,9 @@ if __name__ == '__main__':
 
     """Stress test functions"""
 
-    # print(naive_dist(adj[0], cost[0], s, t, n))
-    # print("Bi-Dijkstra:", distance(adj, cost, s, t, n))
-    # print("Naive:", naive_dist(adj, cost, s, t, n))
-
-    # while True:
-    for _ in range(10):
-        n = randint(1, 6)
+    while True:
+    # for _ in range(10):
+        n = randint(1, 100)
         m =  randint(0, n * (n - 1))
         # n = 10
         # m = 7
@@ -240,9 +236,6 @@ if __name__ == '__main__':
         adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
         cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
         for ((a, b), w) in edges:
-            # adj[a - 1].append(b - 1)
-            # cost[a - 1].append(w)
-
             adj[0][a - 1].append(b - 1)
             cost[0][a - 1].append(w)
             adj[1][b - 1].append(a - 1)
@@ -250,17 +243,17 @@ if __name__ == '__main__':
         
         naive = naive_dist(adj[0], cost[0], s, t, n)
         bi_dijkstra = BiDij(n)
-        bidir = bi_dijkstra.query(adj, cost, s, t, n)
-        # try:
-        #     dijkstra = distance(adj, cost, s, t, n)
-        # except TypeError:
-        #     print(n)
-        #     # for edge in edges:
-        #     #     print(a, b, w)
-        #     print(edges)
-        #     print(s, t)
-        #     # print(E)
-        #     break    
+        # bidir = bi_dijkstra.query(adj, cost, s, t, n)
+        try:
+            bidir = bi_dijkstra.query(adj, cost, s, t, n)
+        except TypeError:
+            print(n)
+            # for edge in edges:
+            #     print(a, b, w)
+            print(edges)
+            print(s, t)
+            # print(E)
+            break    
 
         if naive != bidir:
             print("Naive:", naive)
