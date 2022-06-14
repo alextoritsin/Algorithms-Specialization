@@ -3,7 +3,6 @@
 from concurrent.futures import process
 import sys
 import queue
-from turtle import distance
 
 
 def BuildHeap(array, size):
@@ -85,14 +84,16 @@ def ExtractMin(array:list, size, proxy_arr:list):
 
 class BiDij:
     def __init__(self, n):
+
         self.n = n;                                # Number of nodes
         self.inf = n * 10 ** 6                     # All distances in the graph are smaller
         self.dist = [[self.inf] * n, [self.inf] * n]  # Initialize distances for forward and backward searches
         self.visited = [False] * n                 # visited[v] == True iff v was visited by forward or backward search
+
         self.workset = set()                          # All the nodes visited by forward or backward search
         # init nodes and it's indexes for bidir search
-        self.nodes_forw = [[i, self.dist[0]] for i in range(n)]
-        self.nodes_rev = [[i, self.dist[1]] for i in range(n)]
+        self.nodes_forw = [[i, self.dist[0][i]] for i in range(n)]
+        self.nodes_rev = [[i, self.dist[1][i]] for i in range(n)]
         self.proc = set()
         self.proc_r = set()
 
@@ -105,8 +106,8 @@ class BiDij:
 
         # del self.workset[0:len(self.workset)]
         self.workset = set()
-        self.nodes_forw = [[i, self.dist[0]] for i in range(n)]
-        self.nodes_rev = [[i, self.dist[1]] for i in range(n)]
+        self.nodes_forw = [[i, self.dist[0][i]] for i in range(n)]
+        self.nodes_rev = [[i, self.dist[1][i]] for i in range(n)]
         self.proc = set()
         self.proc_r = set()
         
@@ -150,14 +151,14 @@ class BiDij:
             """forward search"""
             u, n_forw = ExtractMin(self.nodes_forw, n_forw, proxy_arr_forw)
             # process exctracted node
-            self.process_node(adj, cost, self.nodes_forw, proxy_arr_forw,
+            self.process_node(adj[0], cost[0], self.nodes_forw, proxy_arr_forw,
                               u, self.dist[0], self.proc, n_forw)
             # check if this node in another set
             if u in self.proc_r:
                 return self.shortest_path()
             """backward search"""
             u, n_rev = ExtractMin(self.nodes_rev, n_rev, proxy_arr_rev)
-            self.process_node(adj, cost, self.nodes_rev, proxy_arr_rev,
+            self.process_node(adj[0], cost[0], self.nodes_rev, proxy_arr_rev,
                               u, self.dist[1], self.proc_r, n_rev)
             if u in self.proc:
                 return self.shortest_path()
