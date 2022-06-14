@@ -1,9 +1,8 @@
 #!/usr/bin/python3
 
-from concurrent.futures import process
 import sys
-import queue
-
+from queue import Queue
+from random import randint
 
 def BuildHeap(array, size):
     """Builds binary heap from array
@@ -81,13 +80,11 @@ def ExtractMin(array:list, size, proxy_arr:list):
     return min_node, size
 
 
-
 class BiDij:
     def __init__(self, n):
         self.n = n;                                # Number of nodes
         self.inf = n * 10 ** 6                     # All distances in the graph are smaller
         self.dist = [[self.inf] * n, [self.inf] * n]  # Initialize distances for forward and backward searches
-        # self.visited = [False] * n                 # visited[v] == True iff v was visited by forward or backward search
 
         self.workset = set()                          # All the nodes visited by forward or backward search
         # init nodes and it's indexes for bidir search
@@ -99,11 +96,6 @@ class BiDij:
 
     def clear(self):
         """Reinitialize the data structures for the next query after the previous query."""
-        # for v in self.workset:
-        #     self.dist[0][v] = self.dist[1][v] = self.inf
-        #     self.visited[v] = False
-
-        # del self.workset[0:len(self.workset)]
         self.workset = set()
         self.proc = set()
         self.proc_r = set()
@@ -112,12 +104,8 @@ class BiDij:
         self.nodes_rev = [[i, self.dist[1][i]] for i in range(n)]
         
 
-    def visit(self, q, side, v, dist):
-        """Try to relax the distance to node v from direction side by value dist."""
-        # Implement this method yourself
-
-
     def process_node(self, adj, cost, heap, proxy, u, dist, proc:set, size):
+        """Relax nodes outcoming from u and change thier priority"""
         # add this node to general processed set
         self.workset.add(u)
         for i, vert in enumerate(adj[u]):
@@ -128,6 +116,7 @@ class BiDij:
     
 
     def shortest_path(self):
+        """Define s.path based on processed nodes"""
         # def min dist var
         distance = float('inf')
         # for every node in processed
@@ -173,10 +162,6 @@ class BiDij:
                     if u in self.proc:
                         return self.shortest_path()
 
-        # q = [queue.PriorityQueue(), queue.PriorityQueue()]
-        # self.visit(q, 0, s, 0)
-        # self.visit(q, 1, t, 0)
-        # Implement the rest of the algorithm yourself
         return -1
 
 
@@ -184,22 +169,106 @@ def readl():
     return map(int, sys.stdin.readline().split())
 
 
-if __name__ == '__main__':
-    n, m = readl()
-    adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
-    cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
-    for e in range(m):
-        u, v, c = readl()
-        adj[0][u - 1].append(v - 1)
-        cost[0][u-1].append(c)
-        adj[1][v - 1].append(u - 1)
-        cost[1][v - 1].append(c)
-    t, = readl()
-    bidij = BiDij(n)
-    for i in range(t):
-        s, t = readl()
-        if s == t:
-            print(0)
-        else:
-            print(bidij.query(adj, cost, s - 1, t - 1, n))
+def naive_dist(adj, cost, s, t, n):
+    "Finds shortest path using BFS"
+    dist = [float('inf') for _ in range(n)]
+    prev = [None for _ in range(n)]
+    dist = [float('inf')] * n # initialize inf for every dist
+    dist[s] = 0               # def start node distance
+    q = Queue()
+    q.put(s)
+    while not q.empty():
+        u = q.get()
+        for i, v in enumerate(adj[u]):
+            if dist[v] > dist[u] + cost[u][i]:
+                q.put(v)
+                dist[v] = dist[u] + cost[u][i]
 
+    return -1 if dist[t] == float('inf') else dist[t]
+
+
+if __name__ == '__main__':
+    # n, m = readl()
+    # adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    # cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    # for e in range(m):
+    #     u, v, c = readl()
+    #     adj[0][u - 1].append(v - 1)
+    #     cost[0][u - 1].append(c)
+    #     adj[1][v - 1].append(u - 1)
+    #     cost[1][v - 1].append(c)
+    # t, = readl()
+    # bidij = BiDij(n)
+    # for i in range(t):
+    #     s, t = readl()
+    #     if s == t:
+    #         print(0)
+    #     else:
+    #         print(bidij.query(adj, cost, s - 1, t - 1, n))
+
+    """Stress test functions"""
+
+    # print(naive_dist(adj[0], cost[0], s, t, n))
+    # print("Bi-Dijkstra:", distance(adj, cost, s, t, n))
+    # print("Naive:", naive_dist(adj, cost, s, t, n))
+
+    # while True:
+    for _ in range(10):
+        n = randint(1, 6)
+        m =  randint(0, n * (n - 1))
+        # n = 10
+        # m = 7
+        edges = []
+        E = set()
+
+        while len(edges) != m:
+            w = randint(0, 5)
+            
+            a = randint(1, n)
+            b = randint(1, n)
+            
+            if a != b and (a, b) not in E:
+                E.add((a, b))
+                t = ((a, b), w)                
+                edges.append(t)
+
+
+        s = randint(1, n) - 1
+        t = randint(1, n) - 1
+        # s, t = 5, 1
+
+        adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
+        cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
+        for ((a, b), w) in edges:
+            # adj[a - 1].append(b - 1)
+            # cost[a - 1].append(w)
+
+            adj[0][a - 1].append(b - 1)
+            cost[0][a - 1].append(w)
+            adj[1][b - 1].append(a - 1)
+            cost[1][b - 1].append(w)
+        
+        naive = naive_dist(adj[0], cost[0], s, t, n)
+        bi_dijkstra = BiDij(n)
+        bidir = bi_dijkstra.query(adj, cost, s, t, n)
+        # try:
+        #     dijkstra = distance(adj, cost, s, t, n)
+        # except TypeError:
+        #     print(n)
+        #     # for edge in edges:
+        #     #     print(a, b, w)
+        #     print(edges)
+        #     print(s, t)
+        #     # print(E)
+        #     break    
+
+        if naive != bidir:
+            print("Naive:", naive)
+            print("Dijkstra:", bidir)
+            print(n, m)
+            for ((a, b), w) in edges:
+                print(a, b, w)
+            print(s, t)
+            break
+        else:
+            print("OK!")
