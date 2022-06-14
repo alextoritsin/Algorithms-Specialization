@@ -84,11 +84,10 @@ def ExtractMin(array:list, size, proxy_arr:list):
 
 class BiDij:
     def __init__(self, n):
-
         self.n = n;                                # Number of nodes
         self.inf = n * 10 ** 6                     # All distances in the graph are smaller
         self.dist = [[self.inf] * n, [self.inf] * n]  # Initialize distances for forward and backward searches
-        self.visited = [False] * n                 # visited[v] == True iff v was visited by forward or backward search
+        # self.visited = [False] * n                 # visited[v] == True iff v was visited by forward or backward search
 
         self.workset = set()                          # All the nodes visited by forward or backward search
         # init nodes and it's indexes for bidir search
@@ -106,10 +105,11 @@ class BiDij:
 
         # del self.workset[0:len(self.workset)]
         self.workset = set()
-        self.nodes_forw = [[i, self.dist[0][i]] for i in range(n)]
-        self.nodes_rev = [[i, self.dist[1][i]] for i in range(n)]
         self.proc = set()
         self.proc_r = set()
+        self.dist = [[self.inf] * n, [self.inf] * n]
+        self.nodes_forw = [[i, self.dist[0][i]] for i in range(n)]
+        self.nodes_rev = [[i, self.dist[1][i]] for i in range(n)]
         
 
     def visit(self, q, side, v, dist):
@@ -122,7 +122,7 @@ class BiDij:
         self.workset.add(u)
         for i, vert in enumerate(adj[u]):
             if dist[vert] > dist[u] + cost[u][i]:
-                dist[vert] = dist[u] + cost[u]
+                dist[vert] = dist[u] + cost[u][i]
                 ChangePriority(heap, proxy[vert], dist[vert], proxy, size)
         proc.add(u)
     
@@ -132,7 +132,7 @@ class BiDij:
         distance = float('inf')
         # for every node in processed
         for u in self.workset:
-            # check if dist to this node in 2 sides < distance
+            # check if dist to this node in sum of 2 sides less than distance
             if self.dist[0][u] + self.dist[1][u] < distance:
                 distance = self.dist[0][u] + self.dist[1][u]
                 
@@ -144,34 +144,39 @@ class BiDij:
         self.clear()
         # init dist to s and t nodes to 0
         self.dist[0][s], self.dist[1][t] = 0, 0
-        self.nodes_forw[s], self.nodes_rev[t] = 0, 0
+        self.nodes_forw[s][1], self.nodes_rev[t][1] = 0, 0
         # build heaps from nodes arrays 
         proxy_arr_forw, proxy_arr_rev = BuildHeap(self.nodes_forw, n), BuildHeap(self.nodes_rev, n)
+        # loop until all nodes proccessed
         while n_forw or n_rev:
-            """forward search"""
-            u, n_forw = ExtractMin(self.nodes_forw, n_forw, proxy_arr_forw)
-            # process exctracted node
-            self.process_node(adj[0], cost[0], self.nodes_forw, proxy_arr_forw,
-                              u, self.dist[0], self.proc, n_forw)
-            # check if this node in another set
-            if u in self.proc_r:
-                return self.shortest_path()
-            """backward search"""
-            u, n_rev = ExtractMin(self.nodes_rev, n_rev, proxy_arr_rev)
-            self.process_node(adj[0], cost[0], self.nodes_rev, proxy_arr_rev,
-                              u, self.dist[1], self.proc_r, n_rev)
-            if u in self.proc:
-                return self.shortest_path()
-        
-        
+            # check whether all posib. nodes relaxed
+            if self.nodes_forw[0][1] == self.nodes_rev[0][1] == self.inf:
+                break
+            else:
+                """forward search"""
+                # extract only relaxed node
+                if self.nodes_forw[0][1] != self.inf:
+                    u, n_forw = ExtractMin(self.nodes_forw, n_forw, proxy_arr_forw)
+                    # process exctracted node
+                    self.process_node(adj[0], cost[0], self.nodes_forw, proxy_arr_forw,
+                                    u, self.dist[0], self.proc, n_forw)
+                    # check if this node in another set
+                    if u in self.proc_r:
+                        return self.shortest_path()
+
+                """backward search"""
+                # extract only relaxed node
+                if self.nodes_rev[0][1] != self.inf:
+                    u, n_rev = ExtractMin(self.nodes_rev, n_rev, proxy_arr_rev)
+                    self.process_node(adj[1], cost[1], self.nodes_rev, proxy_arr_rev,
+                                    u, self.dist[1], self.proc_r, n_rev)
+                    if u in self.proc:
+                        return self.shortest_path()
 
         # q = [queue.PriorityQueue(), queue.PriorityQueue()]
         # self.visit(q, 0, s, 0)
         # self.visit(q, 1, t, 0)
         # Implement the rest of the algorithm yourself
-        
-        
-        
         return -1
 
 
@@ -193,4 +198,8 @@ if __name__ == '__main__':
     bidij = BiDij(n)
     for i in range(t):
         s, t = readl()
-        print(bidij.query(adj, cost, s - 1, t - 1, n))
+        if s == t:
+            print(0)
+        else:
+            print(bidij.query(adj, cost, s - 1, t - 1, n))
+
