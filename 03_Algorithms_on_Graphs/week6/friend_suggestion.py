@@ -188,80 +188,80 @@ def naive_dist(adj, cost, s, t, n):
 
 
 if __name__ == '__main__':
-    # n, m = readl()
-    # adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
-    # cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
-    # for e in range(m):
-    #     u, v, c = readl()
-    #     adj[0][u - 1].append(v - 1)
-    #     cost[0][u - 1].append(c)
-    #     adj[1][v - 1].append(u - 1)
-    #     cost[1][v - 1].append(c)
-    # t, = readl()
-    # bidij = BiDij(n)
-    # for i in range(t):
-    #     s, t = readl()
-    #     if s == t:
-    #         print(0)
-    #     else:
-    #         print(bidij.query(adj, cost, s - 1, t - 1, n))
-
-    """Stress test functions"""
-
-    while True:
-    # for _ in range(10):
-        n = randint(1, 100)
-        m =  randint(0, n * (n - 1))
-        # n = 10
-        # m = 7
-        edges = []
-        E = set()
-
-        while len(edges) != m:
-            w = randint(0, 5)
-            
-            a = randint(1, n)
-            b = randint(1, n)
-            
-            if a != b and (a, b) not in E:
-                E.add((a, b))
-                t = ((a, b), w)                
-                edges.append(t)
-
-
-        s = randint(1, n) - 1
-        t = randint(1, n) - 1
-        # s, t = 5, 1
-
-        adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
-        cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
-        for ((a, b), w) in edges:
-            adj[0][a - 1].append(b - 1)
-            cost[0][a - 1].append(w)
-            adj[1][b - 1].append(a - 1)
-            cost[1][b - 1].append(w)
-        
-        naive = naive_dist(adj[0], cost[0], s, t, n)
-        bi_dijkstra = BiDij(n)
-        # bidir = bi_dijkstra.query(adj, cost, s, t, n)
-        try:
-            bidir = bi_dijkstra.query(adj, cost, s, t, n)
-        except TypeError:
-            print(n)
-            # for edge in edges:
-            #     print(a, b, w)
-            print(edges)
-            print(s, t)
-            # print(E)
-            break    
-
-        if naive != bidir:
-            print("Naive:", naive)
-            print("Dijkstra:", bidir)
-            print(n, m)
-            for ((a, b), w) in edges:
-                print(a, b, w)
-            print(s, t)
-            break
+    n, m = readl()
+    adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    for e in range(m):
+        u, v, c = readl()
+        adj[0][u - 1].append(v - 1)
+        cost[0][u - 1].append(c)
+        adj[1][v - 1].append(u - 1)
+        cost[1][v - 1].append(c)
+    t, = readl()
+    bidij = BiDij(n)
+    for i in range(t):
+        s, t = readl()
+        if s == t:
+            print(0)
         else:
-            print("OK!")
+            print(bidij.query(adj, cost, s - 1, t - 1, n))
+
+    # """Stress test functions"""
+
+    # while True:
+    # # for _ in range(10):
+    #     n = randint(1, 100)
+    #     m =  randint(0, n * (n - 1))
+    #     # n = 10
+    #     # m = 7
+    #     edges = []
+    #     E = set()
+
+    #     while len(edges) != m:
+    #         w = randint(0, 5)
+            
+    #         a = randint(1, n)
+    #         b = randint(1, n)
+            
+    #         if a != b and (a, b) not in E:
+    #             E.add((a, b))
+    #             t = ((a, b), w)                
+    #             edges.append(t)
+
+
+    #     s = randint(1, n) - 1
+    #     t = randint(1, n) - 1
+    #     # s, t = 5, 1
+
+    #     adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    #     cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    #     for ((a, b), w) in edges:
+    #         adj[0][a - 1].append(b - 1)
+    #         cost[0][a - 1].append(w)
+    #         adj[1][b - 1].append(a - 1)
+    #         cost[1][b - 1].append(w)
+        
+    #     naive = naive_dist(adj[0], cost[0], s, t, n)
+    #     bi_dijkstra = BiDij(n)
+    #     # bidir = bi_dijkstra.query(adj, cost, s, t, n)
+    #     try:
+    #         bidir = bi_dijkstra.query(adj, cost, s, t, n)
+    #     except TypeError:
+    #         print(n)
+    #         # for edge in edges:
+    #         #     print(a, b, w)
+    #         print(edges)
+    #         print(s, t)
+    #         # print(E)
+    #         break    
+
+    #     if naive != bidir:
+    #         print("Naive:", naive)
+    #         print("Dijkstra:", bidir)
+    #         print(n, m)
+    #         for ((a, b), w) in edges:
+    #             print(a, b, w)
+    #         print(s, t)
+    #         break
+    #     else:
+    #         print("OK!")
