@@ -9,7 +9,6 @@ def build_suffix_tree(text):
     with all of the labels of its edges (the corresponding 
     substrings of the text) in any order.
     """
-    result = []
     tree = dict()
     tree[0] = dict()
     new_node = 0
@@ -29,7 +28,7 @@ def build_suffix_tree(text):
                     else:
                         break_ind = pat_ind
                         break
-
+                # check if get throught all edge
                 if break_ind != pat_ind:
                     cur_node = node                    
                     char = text[pat_ind]
@@ -53,7 +52,7 @@ def build_suffix_tree(text):
                         tree[new_node] = dict()
                         tree[cur_node][char] = (str_ind, j - str_ind, new_node)
                         # draw the edge from new node to 'node'
-                        tree[new_node][text[j]] = (j, length - j, node)
+                        tree[new_node][text[j]] = (j, length - (j - str_ind), node)
                         # draw the edge from new node with left suffix
                         tree[new_node][text[pat_ind]] = (pat_ind, len(text) - pat_ind, new_node + 1)
                         new_node += 1
@@ -69,14 +68,15 @@ def build_suffix_tree(text):
             new_node += 1
             tree[new_node] = dict()
             tree[cur_node][char] = (i, len(text) - i, new_node)
-
-                
-
-            
-    return result
+    
+    for node in tree:
+        for edge in tree[node]:
+            (start, length, target) = tree[node][edge]
+            print(text[start:start + length])
 
 
 if __name__ == '__main__':
     text = sys.stdin.readline().strip()
-    result = build_suffix_tree(text)
-    print("\n".join(result))
+    # result = build_suffix_tree(text)
+    build_suffix_tree(text)
+    # print("\n".join(result))
