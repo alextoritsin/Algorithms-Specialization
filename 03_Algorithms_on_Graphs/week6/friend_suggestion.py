@@ -118,15 +118,29 @@ class BiDij:
     def shortest_path(self):
         """Define s.path based on processed nodes"""
         # def min dist var
-        distance = float('inf')
+        distance = self.inf
         # for every node in processed
         for u in self.workset:
             # check if dist to this node in sum of 2 sides less than distance
             if self.dist[0][u] + self.dist[1][u] < distance:
                 distance = self.dist[0][u] + self.dist[1][u]
                 
-        return distance
-    
+        return -1 if distance == self.inf else distance
+
+
+    def relax(self, adj, cost, heap, proxy, u, dist, proc:set, size, mu, side):
+        """Relax nodes outcoming from u and change thier priority"""
+        # add this node to general processed set
+        # self.workset.add(u)
+        for i, vert in enumerate(adj[u]):
+            if dist[vert] > dist[u] + cost[u][i]:
+                dist[vert] = dist[u] + cost[u][i]
+                ChangePriority(heap, proxy[vert], dist[vert], proxy, size)
+            if vert in proc and dist[u] + cost[u][i] + self.dist[side][vert] < mu:
+                mu = dist[u] + cost[u][i] + self.dist[side][vert]
+        return mu
+                
+
 
     def query(self, adj, cost, s, t, n):
         n_forw = n_rev = n
@@ -136,31 +150,49 @@ class BiDij:
         self.nodes_forw[s][1], self.nodes_rev[t][1] = 0, 0
         # build heaps from nodes arrays 
         proxy_arr_forw, proxy_arr_rev = BuildHeap(self.nodes_forw, n), BuildHeap(self.nodes_rev, n)
+        distance = self.inf
+        while n_forw and n_rev:
+            u, n_forw = ExtractMin(self.nodes_forw, n_forw, proxy_arr_forw)
+            v, n_rev = ExtractMin(self.nodes_rev, n_rev, proxy_arr_rev)
+            self.proc.add(u)
+            self.proc_r.add(v)
+            if self.dist[0][u] + self.dist[1][v] >= distance:
+                break
+            mu = self.relax(adj[0], cost[0], self.nodes_forw, proxy_arr_forw,
+                            u, self.dist[0], self.proc_r, n_forw, mu, 1)
+
+            mu = self.relax(adj[1], cost[1], self.nodes_rev, proxy_arr_rev,
+                            v, self.dist[1], self.proc, n_rev, mu, 0)
+
+        return -1 if mu == self.inf else mu    
+
+
+
         # loop until all nodes proccessed
         while n_forw or n_rev:
             # check whether all posib. nodes relaxed
-            if self.nodes_forw[0][1] == self.nodes_rev[0][1] == self.inf:
-                break
-            else:
-                """forward search"""
-                # extract only relaxed node
-                if self.nodes_forw[0][1] != self.inf:
-                    u, n_forw = ExtractMin(self.nodes_forw, n_forw, proxy_arr_forw)
-                    # process exctracted node
-                    self.process_node(adj[0], cost[0], self.nodes_forw, proxy_arr_forw,
-                                    u, self.dist[0], self.proc, n_forw)
-                    # check if this node in another set
-                    if u in self.proc_r:
-                        return self.shortest_path()
+            # if self.nodes_forw[0][1] == self.nodes_rev[0][1] == self.inf:
+            #     break
+            # else:
+            """forward search"""
+            # extract only relaxed node
+            # if self.nodes_forw[0][1] != self.inf:
+            u, n_forw = ExtractMin(self.nodes_forw, n_forw, proxy_arr_forw)
+            # process exctracted node
+            self.process_node(adj[0], cost[0], self.nodes_forw, proxy_arr_forw,
+                            u, self.dist[0], self.proc, n_forw)
+            # check if this node in another set
+            if u in self.proc_r:
+                return self.shortest_path()
 
-                """backward search"""
-                # extract only relaxed node
-                if self.nodes_rev[0][1] != self.inf:
-                    u, n_rev = ExtractMin(self.nodes_rev, n_rev, proxy_arr_rev)
-                    self.process_node(adj[1], cost[1], self.nodes_rev, proxy_arr_rev,
-                                    u, self.dist[1], self.proc_r, n_rev)
-                    if u in self.proc:
-                        return self.shortest_path()
+            """backward search"""
+            # extract only relaxed node
+            # if self.nodes_rev[0][1] != self.inf:
+            u, n_rev = ExtractMin(self.nodes_rev, n_rev, proxy_arr_rev)
+            self.process_node(adj[1], cost[1], self.nodes_rev, proxy_arr_rev,
+                            u, self.dist[1], self.proc_r, n_rev)
+            if u in self.proc:
+                return self.shortest_path()
 
         return -1
 
@@ -188,80 +220,80 @@ def naive_dist(adj, cost, s, t, n):
 
 
 if __name__ == '__main__':
-    # n, m = readl()
-    # adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
-    # cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
-    # for e in range(m):
-    #     u, v, c = readl()
-    #     adj[0][u - 1].append(v - 1)
-    #     cost[0][u - 1].append(c)
-    #     adj[1][v - 1].append(u - 1)
-    #     cost[1][v - 1].append(c)
-    # t, = readl()
-    # bidij = BiDij(n)
-    # for i in range(t):
-    #     s, t = readl()
-    #     if s == t:
-    #         print(0)
-    #     else:
-    #         print(bidij.query(adj, cost, s - 1, t - 1, n))
+    n, m = readl()
+    adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    for e in range(m):
+        u, v, c = readl()
+        adj[0][u - 1].append(v - 1)
+        cost[0][u - 1].append(c)
+        adj[1][v - 1].append(u - 1)
+        cost[1][v - 1].append(c)
+    t, = readl()
+    bidij = BiDij(n)
+    for i in range(t):
+        s, t = readl()
+        if s == t:
+            print(0)
+        else:
+            print(bidij.query(adj, cost, s - 1, t - 1, n))
 
     """Stress test functions"""
 
-    while True:
-    # for _ in range(10):
-        n = randint(1, 100)
-        m =  randint(0, n * (n - 1))
-        # n = 10
-        # m = 7
-        edges = []
-        E = set()
+    # while True:
+    # # for _ in range(10):
+    #     n = randint(1, 100)
+    #     m =  randint(0, n * (n - 1))
+    #     # n = 10
+    #     # m = 7
+    #     edges = []
+    #     E = set()
 
-        while len(edges) != m:
-            w = randint(0, 5)
+    #     while len(edges) != m:
+    #         w = randint(0, 5)
             
-            a = randint(1, n)
-            b = randint(1, n)
+    #         a = randint(1, n)
+    #         b = randint(1, n)
             
-            if a != b and (a, b) not in E:
-                E.add((a, b))
-                t = ((a, b), w)                
-                edges.append(t)
+    #         if a != b and (a, b) not in E:
+    #             E.add((a, b))
+    #             t = ((a, b), w)                
+    #             edges.append(t)
 
 
-        s = randint(1, n) - 1
-        t = randint(1, n) - 1
-        # s, t = 5, 1
+    #     s = randint(1, n) - 1
+    #     t = randint(1, n) - 1
+    #     # s, t = 5, 1
 
-        adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
-        cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
-        for ((a, b), w) in edges:
-            adj[0][a - 1].append(b - 1)
-            cost[0][a - 1].append(w)
-            adj[1][b - 1].append(a - 1)
-            cost[1][b - 1].append(w)
+    #     adj = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    #     cost = [[[] for _ in range(n)], [[] for _ in range(n)]]
+    #     for ((a, b), w) in edges:
+    #         adj[0][a - 1].append(b - 1)
+    #         cost[0][a - 1].append(w)
+    #         adj[1][b - 1].append(a - 1)
+    #         cost[1][b - 1].append(w)
         
-        naive = naive_dist(adj[0], cost[0], s, t, n)
-        bi_dijkstra = BiDij(n)
-        # bidir = bi_dijkstra.query(adj, cost, s, t, n)
-        try:
-            bidir = bi_dijkstra.query(adj, cost, s, t, n)
-        except TypeError:
-            print(n)
-            # for edge in edges:
-            #     print(a, b, w)
-            print(edges)
-            print(s, t)
-            # print(E)
-            break    
+    #     naive = naive_dist(adj[0], cost[0], s, t, n)
+    #     bi_dijkstra = BiDij(n)
+    #     # bidir = bi_dijkstra.query(adj, cost, s, t, n)
+    #     try:
+    #         bidir = bi_dijkstra.query(adj, cost, s, t, n)
+    #     except TypeError:
+    #         print(n)
+    #         # for edge in edges:
+    #         #     print(a, b, w)
+    #         print(edges)
+    #         print(s, t)
+    #         # print(E)
+    #         break    
 
-        if naive != bidir:
-            print("Naive:", naive)
-            print("Dijkstra:", bidir)
-            print(n, m)
-            for ((a, b), w) in edges:
-                print(a, b, w)
-            print(s, t)
-            break
-        else:
-            print("OK!")
+    #     if naive != bidir:
+    #         print("Naive:", naive)
+    #         print("Dijkstra:", bidir)
+    #         print(n, m)
+    #         for ((a, b), w) in edges:
+    #             print(a, b, w)
+    #         print(s, t)
+    #         break
+    #     else:
+    #         print("OK!")
