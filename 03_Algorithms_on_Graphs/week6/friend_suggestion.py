@@ -238,7 +238,7 @@ if __name__ == '__main__':
         else:
             print(bidij.query(adj, cost, s - 1, t - 1, n))
 
-    """Stress test functions"""
+    # """Stress test functions"""
 
     # while True:
     # # for _ in range(10):
