@@ -46,7 +46,7 @@ def CountOccurrences(pattern, bwt, starts, count):
     pat_len = len(pattern)
     while top <= bottom:
         if pat_len:
-            symbol = pattern[pat_len - 1]
+            symbol = pattern[pat_len - 1]  
             pat_len -= 1
             if symbol not in count:
                 return 0
