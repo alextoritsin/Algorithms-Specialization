@@ -69,10 +69,12 @@ def build_suffix_tree(text):
             tree[new_node] = dict()
             tree[cur_node][char] = (i, len(text) - i, new_node)
     
-    for node in tree:
-        for edge in tree[node]:
-            (start, length, target) = tree[node][edge]
-            print(text[start:start + length])
+
+    return new_node
+    # for node in tree:
+    #     for edge in tree[node]:
+    #         (start, length, target) = tree[node][edge]
+    #         print(text[start:start + length])
 
 
 if __name__ == '__main__':

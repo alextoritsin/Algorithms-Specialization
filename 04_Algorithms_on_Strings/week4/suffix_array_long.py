@@ -1,6 +1,5 @@
 # python3
 import sys
-from random import randint
 
 
 def sort_single_chars(text):
@@ -88,32 +87,14 @@ def update_classes(new_order, cls, L):
     for i in range(1, n):
         cur, prev = new_order[i], new_order[i - 1]
         mid, mid_prev = (cur + L) % n, (prev + L) % n
+        # create new class if one of prev cls differs
         if cls[cur] != cls[prev] or cls[mid] != cls[mid_prev]:
             new_class[cur] = new_class[prev] + 1
+        # copy prev class whey all cls are equal
         else:
             new_class[cur] = new_class[prev]
 
     return new_class
-
-
-def build_suffix_array_naive(text):
-    """
-    Build suffix array of the string text and
-    return a list result of the same length as the text
-    such that the value result[i] is the index (0-based)
-    in text where the i-th lexicographically smallest
-    suffix of text starts.
-    """
-    n = len(text)
-    result = [0] * n
-    result[0] = (0, text)
-    for i in range(n - 1):
-        t = result[i][1]
-        t = t[-1] + t[:n - 1]
-        result[i + 1] = (n - 1 - i, t)
-
-    result.sort(key=lambda x: x[1])
-    return " ".join([str(elem[0]) for elem in result])
 
 
 def build_suffix_array(text):
@@ -132,7 +113,8 @@ def build_suffix_array(text):
         cls = update_classes(order, cls, L)
         L = 2 * L
 
-    return " ".join([str(i) for i in order])
+    # return " ".join([str(i) for i in order])
+    return order
 
 
 if __name__ == '__main__':
