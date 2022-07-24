@@ -25,20 +25,23 @@ class BiDij:
         self.dist = {'forw': {}, 'back': {}}
 
         
-    def relax(self, adj:list, cost, heap:list, dist:dict, u, mu, side):
+    def relax(self, adj:list, cost, heap:list, dist:dict, u, dst, side):
         for i, vert in enumerate(adj[u]):
             if dist.get(vert, self.inf) > dist[u] + cost[u][i]:
                 dist[vert] = dist[u] + cost[u][i]
                 heappush(heap, (dist[vert], vert))
 
-            if vert in self.visited[side] and dist[u] + cost[u][i] + self.dist[side].get(vert, self.inf) < mu:
-                mu = dist[u] + cost[u][i] + self.dist[side][vert]
+            if vert in self.visited[side] and dist[u] + cost[u][i] + self.dist[side].get(vert, self.inf) < dst:
+                dst = dist[u] + cost[u][i] + self.dist[side][vert]
 
-        return mu
+        return dst
 
 
     def query(self, adj, cost, s, t, n):
-        n_forw = n_rev = n
+        """
+        Find shortest path in graph from node s to node t
+        using Bidirectional Dijkstra Algorithm
+        """
         self.clear()
         # init dist to s and t nodes to 0
         self.dist['forw'][s] = 0
@@ -46,7 +49,7 @@ class BiDij:
 
         heappush(self.heap['forw'], (0, s))
         heappush(self.heap['back'], (0, t))
-        mu = self.inf
+        dst = self.inf
         while len(self.heap['forw']) and len(self.heap['back']):
             node_f, u = heappop(self.heap['forw'])
             while u in self.visited['forw']:
@@ -63,13 +66,13 @@ class BiDij:
             self.visited['forw'].add(u)
             self.visited['back'].add(v)
             
-            mu = self.relax(adj[0], cost[0], self.heap['forw'], self.dist['forw'], u, mu, 'back')
-            mu = self.relax(adj[1], cost[1], self.heap['back'], self.dist['back'], v, mu, 'forw')
+            dst = self.relax(adj[0], cost[0], self.heap['forw'], self.dist['forw'], u, dst, 'back')
+            dst = self.relax(adj[1], cost[1], self.heap['back'], self.dist['back'], v, dst, 'forw')
 
-            if self.dist['forw'].get(u, self.inf) + self.dist['back'].get(v, self.inf) >= mu:
+            if self.dist['forw'].get(u, self.inf) + self.dist['back'].get(v, self.inf) >= dst:
                 break
 
-        return -1 if mu == self.inf else mu    
+        return -1 if dst == self.inf else dst    
             
 
 def readl():
