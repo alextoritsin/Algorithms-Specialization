@@ -36,7 +36,8 @@ class BiDij:
 
         return dst
 
-
+# Main intuition behind code below courtesy to Matthew Towers from UCL
+# https://www.homepages.ucl.ac.uk/~ucahmto/math/2020/05/30/bidirectional-dijkstra.html
     def query(self, adj, cost, s, t, n):
         """
         Find shortest path in graph from node s to node t
@@ -47,28 +48,34 @@ class BiDij:
         self.dist['forw'][s] = 0
         self.dist['back'][t] = 0
 
+        # add s and t nodes to heap
         heappush(self.heap['forw'], (0, s))
         heappush(self.heap['back'], (0, t))
         dst = self.inf
         while len(self.heap['forw']) and len(self.heap['back']):
+            # get first value in heap in forw search
             node_f, u = heappop(self.heap['forw'])
             while u in self.visited['forw']:
                 if len(self.heap['forw']) == 0:
                     break
                 node_f, u = heappop(self.heap['forw'])
-                 
+            
+            # get first value in heap in backw search
             node_b, v = heappop(self.heap['back'])
             while v in self.visited['back']:
                 if len(self.heap['back']) == 0:
                     break
-                node_f, v = heappop(self.heap['back'])
+                node_b, v = heappop(self.heap['back'])
 
+            # add nodes to visited set
             self.visited['forw'].add(u)
             self.visited['back'].add(v)
             
+            # relax all outgoing edges resp for forw and backw search paths
             dst = self.relax(adj[0], cost[0], self.heap['forw'], self.dist['forw'], u, dst, 'back')
             dst = self.relax(adj[1], cost[1], self.heap['back'], self.dist['back'], v, dst, 'forw')
 
+            # if we break out of while loop 'dst' is true shortest path btw 's' and 't'
             if self.dist['forw'].get(u, self.inf) + self.dist['back'].get(v, self.inf) >= dst:
                 break
 
