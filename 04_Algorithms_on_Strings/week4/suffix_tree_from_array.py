@@ -13,8 +13,8 @@ class Node:
 
 def print_edges(root:Node, nodes:int):
     """Prints all edges of suffix tree rooted in 'root'
-    with 'nodes' number of nodes using iterible DFS
-    in ascending order without repeated nodes"""
+    with 'nodes' number of nodes using iterable DFS
+    in ascending order without repeated edges"""
     stack = []
     keys = ['T', 'G', 'C', 'A', '$']
     marked = [False] * nodes

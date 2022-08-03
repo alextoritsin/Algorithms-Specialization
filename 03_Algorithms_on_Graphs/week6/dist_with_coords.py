@@ -56,9 +56,11 @@ class AStar:
             # for every outgoing edge from node 'u'
             # find s.path to edge and approximate dist
             for i, vert in enumerate(self.adj[u]):
+                # s.path to node 'vert'
                 path = self.dist[u] + self.cost[u][i]
                 if path < self.dist.get(vert, self.inf):
                     self.dist[vert] = path
+                    # rewrite best guess, because newly find path is less
                     self.b_guess[vert] = path + self.best_guess(vert, t)
                     if vert not in self.visited:
                         heappush(self.heap, (self.b_guess[vert], vert))
