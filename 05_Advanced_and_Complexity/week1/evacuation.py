@@ -39,16 +39,6 @@ class FlowGraph:
     def get_edge(self, id):
         return self.edges[id]
 
-    def add_flow(self, id, flow):
-        # To get a backward edge for a true forward edge (i.e id is even), we should get id + 1
-        # due to the described above scheme. On the other hand, when we have to get a "backward"
-        # edge for a backward edge (i.e. get a forward edge for backward - id is odd), id - 1
-        # should be taken.
-        #
-        # It turns out that id ^ 1 works for both cases. Think this through!
-        self.edges[id].flow += flow
-        self.edges[id ^ 1].flow -= flow
-
 
 def read_data():
     vertex_count, edge_count = map(int, input().split())
