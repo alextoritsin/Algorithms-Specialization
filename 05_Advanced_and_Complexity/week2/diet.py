@@ -10,13 +10,8 @@ class Position:
 
 
 def SelectPivotElement(a, used_rows, piv_elem:Position, size):
-    # init_row = piv_elem.row
     while piv_elem.row < size and (used_rows[piv_elem.row] or abs(a[piv_elem.row][piv_elem.column]) == 0):
         piv_elem.row += 1
-    
-    # if piv_elem.row == size:
-    #     return False
-
 
     return piv_elem
 
@@ -59,22 +54,17 @@ def SolveEquation(a, b):
     and vector 'b' using Gauss Jordan Elimination method
     """
     size = len(a)
-
     used_rows = [False] * size
     for step in range(size):
         piv_elem = Position(step, 0)
         piv_elem = SelectPivotElement(a, used_rows, piv_elem, size)
-
         if piv_elem.row == size:
             if b[step] != 0:
                 return None
             else:
-                b[piv_elem.column] = 0
-        # if not piv_elem:
-        #     b[piv_elem.column] = 0
-        #     continue
+                used_rows[step] = True
 
-            # return None
+                continue
         SwapLines(a, b, used_rows, piv_elem)
         piv_elem = ProcessPivotElement(a, b, piv_elem, size, used_rows)
 
@@ -82,7 +72,8 @@ def SolveEquation(a, b):
 
 
 def combination_indicies(n, k, j=0, stack=[]):
-    """https://stackoverflow.com/a/66754344/16522852"""
+    """Combinations algorithm kudos to Student222 @
+    https://stackoverflow.com/a/66754344/16522852"""
     if len(stack) == k:            
         yield set(stack)
         return
@@ -107,6 +98,8 @@ def get_square_matrix(A, b, indices):
 
 
 def solve_diet_problem(n, m, A, b:list, c:list):
+    """Solves sysmem of linear inequalities
+    using brute force algorithm"""
     max_pleasure = float('-inf')
     last_index = -1
     result = []
@@ -114,19 +107,17 @@ def solve_diet_problem(n, m, A, b:list, c:list):
     m_set = set(range(n, n + m))
 
     for k_set in (combination_indicies(n + m + 1, m)):
-        # A_copy = copy.deepcopy(A)
-        # b_copy
-        # get small matrix using indecis from 'k_set'
+        # get small matrix comprised of inequalities at indecis from 'k_set'
         matrix, b_vector = get_square_matrix(A, b, k_set)
-        
-        # result for every other inequalities
+        # solve this matrix 
         res = SolveEquation(matrix, b_vector)
-        # check that all values not negative
         if res:
+            # check for non negative values (with threshold 1e-3)
             for x in res:
-                if x < 0:
+                if (x + 1e-3) < 0:
                     break
             else:
+                # check correctness of inequalities left
                 for index in whole_set - k_set:
                     if index not in m_set:
                         ans = 0
@@ -135,7 +126,6 @@ def solve_diet_problem(n, m, A, b:list, c:list):
                         if ans > b[index] + 1e-3: 
                             # ineq. in matrix A in 'A[index]' doesn't satisfied
                             break
-
                 else:
                     # all inequalitions satisfied, we found solution
                     pleasure = 0
@@ -146,7 +136,6 @@ def solve_diet_problem(n, m, A, b:list, c:list):
                         max_pleasure = pleasure
                         last_index = 1 if (n + m) in k_set else 0
                         result = res
-
 
     return last_index, result
 
@@ -174,13 +163,12 @@ if __name__ == '__main__':
 
     anst, ansx = solve_diet_problem(n, m, A, b, c)
 
+
     if anst == -1:
         print("No solution")
     if anst == 0:  
         print("Bounded solution")
         print(" ".join(["{0:.15f}".format(x) for x in ansx]))
-        # print(' '.join(list(map(lambda x : "{0:.15f}".format(x)))))
-
     if anst == 1:
         print("Infinity")
     
