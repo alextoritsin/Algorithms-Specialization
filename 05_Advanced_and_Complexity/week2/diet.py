@@ -17,6 +17,7 @@ def SelectPivotElement(a, used_rows, piv_elem:Position, size):
     # if piv_elem.row == size:
     #     return False
 
+
     return piv_elem
 
 
@@ -63,6 +64,7 @@ def SolveEquation(a, b):
     for step in range(size):
         piv_elem = Position(step, 0)
         piv_elem = SelectPivotElement(a, used_rows, piv_elem, size)
+
         if piv_elem.row == size:
             if b[step] != 0:
                 return None
@@ -71,6 +73,7 @@ def SolveEquation(a, b):
         # if not piv_elem:
         #     b[piv_elem.column] = 0
         #     continue
+
             # return None
         SwapLines(a, b, used_rows, piv_elem)
         piv_elem = ProcessPivotElement(a, b, piv_elem, size, used_rows)
@@ -97,6 +100,7 @@ def get_square_matrix(A, b, indices):
     b_vector = [0] * len(indices)
     for i, index in enumerate(indices):
         matrix[i] = A_copy[index]
+
         b_vector[i] = b[index]
 
     return matrix, b_vector
@@ -108,6 +112,7 @@ def solve_diet_problem(n, m, A, b:list, c:list):
     result = []
     whole_set = set(range(n + m + 1))
     m_set = set(range(n, n + m))
+
     for k_set in (combination_indicies(n + m + 1, m)):
         # A_copy = copy.deepcopy(A)
         # b_copy
@@ -141,6 +146,7 @@ def solve_diet_problem(n, m, A, b:list, c:list):
                         max_pleasure = pleasure
                         last_index = 1 if (n + m) in k_set else 0
                         result = res
+
 
     return last_index, result
 
