@@ -63,7 +63,6 @@ def SolveEquation(a, b):
                 return None
             else:
                 used_rows[step] = True
-
                 continue
         SwapLines(a, b, used_rows, piv_elem)
         piv_elem = ProcessPivotElement(a, b, piv_elem, size, used_rows)
@@ -73,7 +72,9 @@ def SolveEquation(a, b):
 
 def combination_indicies(n, k, j=0, stack=[]):
     """Combinations algorithm kudos to Student222 @
-    https://stackoverflow.com/a/66754344/16522852"""
+    https://stackoverflow.com/a/66754344/16522852
+    Collects all subsets of set 'n' of size 'k'
+    """
     if len(stack) == k:            
         yield set(stack)
         return
@@ -91,7 +92,6 @@ def get_square_matrix(A, b, indices):
     b_vector = [0] * len(indices)
     for i, index in enumerate(indices):
         matrix[i] = A_copy[index]
-
         b_vector[i] = b[index]
 
     return matrix, b_vector
@@ -141,9 +141,7 @@ def solve_diet_problem(n, m, A, b:list, c:list):
 
 
 if __name__ == '__main__':
-    
     n, m = list(map(int, stdin.readline().split()))
-
     # construct big matrix of size 'n + m + 1'
     A = []
     for i in range(n):
@@ -162,7 +160,6 @@ if __name__ == '__main__':
     b.append(pow(10, 9))
 
     anst, ansx = solve_diet_problem(n, m, A, b, c)
-
 
     if anst == -1:
         print("No solution")
