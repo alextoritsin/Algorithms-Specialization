@@ -23,7 +23,7 @@ def find_pivot_column(c):
 
 
 def allocate_ads(n, m, A, b, c):
-    
+    result = [0] * m
     while True:
         column = find_pivot_column(A[-1])
         if not column:
@@ -44,12 +44,18 @@ def allocate_ads(n, m, A, b, c):
                     for k in range(n + m):
                         A[j][k] += A[row][k] * div
                     b[j] += b[row] * div
-            
 
-
-
-
-    
+    for i in range(m):
+        count, row = 0, 0
+        for j in range(n):
+            if count > 1:
+                break
+            else:
+                if A[j][i] != 0:
+                    count += 1
+                    row = j
+        else:
+            result[i] = b[row] / A[row][i]
 
     return [0, [0] * m]
     
