@@ -15,43 +15,52 @@ def find_pivot_row(A, rhs, col, n):
     return row
 
 
-def find_pivot_column(obj_func, length):
+def find_pivot_column(obj_func, length, rng=set()):
     min_elem, index = 0, length
-    for i in range(length):
-        if obj_func[i] < min_elem:
-            min_elem = obj_func[i]
-            index = i
+    if rng:
+        for i in rng:
+            if obj_func[i] < min_elem:
+                min_elem = obj_func[i]
+                index = i
+    else:
+        for i in range(length):
+            if obj_func[i] < min_elem:
+                min_elem = obj_func[i]
+                index = i
     
     return index
 
 
-def resolve_tableau(A, rhs, obj_func, exclude):
-    while True:
-        column = find_pivot_column(A[-1])
-        if column == float('inf'):
-            return A, rhs
+# def resolve_tableau(A, rhs, obj_func, exclude):
+#     while True:
+#         column = find_pivot_column(A[-1])
+#         if column == float('inf'):
+#             return A, rhs
 
     
-    pass
+#     pass
 
 
 
-def allocate_ads(n, m, A:list, rhs, z, w, artif_set):
-    BV_in_row = [float('inf')] * n
-    BV_in_col = [float('inf')] * m
+def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
+    # BV_in_col = [float('inf')] * m
     if w:
         # go to phase One
+        init_vars = set(range(m))
         A.append(w)
         ln = len(w)
+        # BV_in_row = [float('inf')] * n
         column = find_pivot_column(A[-1], ln)
         while column != ln:
+            if column < m:
+                init_vars -= {column}
             row = find_pivot_row(A, rhs, column, n)
             if row == -1:
                 return 1, []
-            # relax tableau row
+            # normalize row
             div = A[row][column]
             if div != 1:
-                for i in range(n + m):
+                for i in range(ln):
                     A[row][i] /= div
                 rhs[row] /= div
 
@@ -63,38 +72,70 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set):
                         A[j][k] += A[row][k] * div
                     rhs[j] += rhs[row] * div
 
-            # rearrange relation btw row and column of bv 
-            if column < m:
-                if BV_in_row[row] != float('inf'):
-                    BV_in_col[BV_in_row[row]] = float('inf')
-
-                BV_in_col[column] = row
+            # rearrange relation btw row and column of bv
+            cur_col = BV_in_row[row]
+            if cur_col != float('inf'):
+                BV_in_col[cur_col] = float('inf')
+            
             BV_in_row[row] = column
-
+            BV_in_col[column] = row
             
             column = find_pivot_column(A[-1], ln)
 
 
         # check for infeasibility
-        # if one or more artificial values in basic values
-        # than we have infeasible solution
         if rhs[-1] < 0:
             return -1, []
 
+        # Iteration if BV is still in artificial variables
+        iterated_set = set()
+        for column in artif_set:
+            if BV_in_col[column] != float('inf'):
+                row = BV_in_col[column]
+                for col in init_vars:
+                    div = A[row][col]
+                    if div != 0:
+                        # normalize row
+                        if div != 1:
+                            for i in range(ln):
+                                A[row][i] /= div
+                            rhs[row] /= div
+
+                        # complete row reduction by elimination
+                        for j in range(n):          # range value differs, attention
+                            if j != row and A[j][col]: 
+                                div = -A[j][col] / A[row][col]
+                                for k in range(ln):
+                                    A[j][k] += A[row][k] * div
+                                rhs[j] += rhs[row] * div
+
+                        init_vars -= {col}
+                        BV_in_col[col], BV_in_col[column] = row, float('inf')
+                        BV_in_row[row] = col
+                        iterated_set.add(column)
+                        break
+                else:
+                    r = [0] * len(A[0])
+                    r[column] = 1
+                    rhs[row] = 0
+                    A[row] = r
+            
         # prepare tableau for phase Two
         A[-1] = z + [0] * (ln - m)
+        rng = set(range(ln - 1)) - iterated_set
         ln = len(w) - len(artif_set)
-        # check variables in z column to be BV and make all other values 0
-        for i, row in enumerate(BV_in_col):
-            if row != float('inf') and A[-1][i] != 0:
+        # check columns in z row to be 0 if that column contains BV
+        for i in range(m):
+        # for i, row in enumerate(BV_in_col):
+            if BV_in_col[i] != float('inf') and A[-1][i] != 0:
                 scale = A[-1][i] * (-1)
-                for k in range(ln):
-                    A[-1][k] += A[row][k] * scale
-                rhs[-1] += rhs[row] * scale
+                for k in rng:
+                    A[-1][k] += A[BV_in_col[i]][k] * scale
+                rhs[-1] += rhs[BV_in_col[i]] * scale
 
-        # BV = [float('inf')] * m
+
         """Start Phase II"""
-        column = find_pivot_column(A[-1], ln)
+        column = find_pivot_column(A[-1], ln, rng)
         while column != ln:
             row = find_pivot_row(A, rhs, column, n)
             if row == -1:
@@ -103,7 +144,7 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set):
             div = A[row][column]
             # relax tableau row
             if div != 1:
-                for i in range(n + m):
+                for i in range(ln):
                     A[row][i] /= div
                 rhs[row] /= div
 
@@ -114,17 +155,18 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set):
                     for k in range(ln):
                         A[j][k] += A[row][k] * div
                     rhs[j] += rhs[row] * div
-            if column < m:
-                if BV_in_row[row] != float('inf'):
-                    BV_in_col[BV_in_row[row]] = float('inf')
 
-                BV_in_col[column] = row
+            cur_col = BV_in_row[row]
+            if cur_col != float('inf'):
+                BV_in_col[cur_col] = float('inf')
+
             BV_in_row[row] = column
+            BV_in_col[column] = row
             
             column = find_pivot_column(A[-1], ln)
 
         # break out of the loop, optimal solution found
-        return 0, [0 if row == float('inf') else rhs[row] for row in BV_in_col]
+        return 0, [0 if row == float('inf') else rhs[row] for row in BV_in_col[:m]]
       
     else:
         # skit to phase II
@@ -149,20 +191,21 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set):
             for j in range(n + 1):
                 if j != row and A[j][column]: 
                     div = -A[j][column] / A[row][column]
-                    for k in range(n + m):
+                    for k in range(2 * n):
                         A[j][k] += A[row][k] * div
                     rhs[j] += rhs[row] * div
-            if column < m:
-                if BV_in_row[row] != float('inf'):
-                    BV_in_col[BV_in_row[row]] = float('inf')
+                    
+            cur_col = BV_in_row[row]
+            if cur_col != float('inf'):
+                BV_in_col[cur_col] = float('inf')
 
-                BV_in_col[column] = row
             BV_in_row[row] = column
+            BV_in_col[column] = row
             
             column = find_pivot_column(A[-1], len(z))
 
         # break out of the loop, optimal solution found
-        return 0, [0 if row == float('inf') else rhs[row] for row in BV_in_col]
+        return 0, [0 if row == float('inf') else rhs[row] for row in BV_in_col[:m]]
 
 
 if __name__ == '__main__':
@@ -194,21 +237,26 @@ if __name__ == '__main__':
     w = []
     artif_set = set()
     rhs.append(0)
+    BV_in_col = [float('inf')] * (m + ln)
+    BV_in_row = [float('inf')] * n
     if e:
         # if we have artificial variables
         artif_colms = [0] * len(e)
-        for i, val in enumerate(e):
+        for i, row in enumerate(e):
             aux = [0] * ln
             aux[len(s) + i] = -1
             ind = len(s) + len(e) + i
             aux[ind] = 1
             artif_colms[i] = ind + m
-            A[val] += aux
+            A[row] += aux
+            BV_in_row[row] = m + ind
+            BV_in_col[BV_in_row[row]] = row
+            rhs[-1] += -rhs[row]
 
         # construct W objective function
         w = [0] * len(A[0])
-        for row in e:
-            rhs[-1] += -rhs[row]
+        # for row in e:
+        #     rhs[-1] += -rhs[row]
         
         artif_set = set(artif_colms)
         for i in range(len(w)):
@@ -217,13 +265,13 @@ if __name__ == '__main__':
                     w[i] += A[row][i] * (-1)
         
 
-    anst, ansx = allocate_ads(n, m, A, rhs, z, w, artif_set)
+    anst, ansx = allocate_ads(n, m, A, rhs, z, w, artif_set, BV_in_row, BV_in_col)
 
     if anst == -1:
         print("No solution")
     if anst == 0:  
         print("Bounded solution")
-        print(' '.join(list(map(lambda x : '%.18f' % x, ansx))))
+        print(" ".join(["{0:.15f}".format(x) for x in ansx]))
     if anst == 1:
         print("Infinity")
     
