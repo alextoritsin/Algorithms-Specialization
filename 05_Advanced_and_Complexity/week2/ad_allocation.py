@@ -16,13 +16,15 @@ def find_pivot_row(A, rhs, col, n):
 
 
 def find_pivot_column(obj_func, length, rng=set()):
-    min_elem, index = 0, length
+    min_elem = 0
     if rng:
+        index = len(rng)
         for i in rng:
             if obj_func[i] < min_elem:
                 min_elem = obj_func[i]
                 index = i
     else:
+        index = length
         for i in range(length):
             if obj_func[i] < min_elem:
                 min_elem = obj_func[i]
@@ -43,12 +45,11 @@ def find_pivot_column(obj_func, length, rng=set()):
 
 
 def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
-    # BV_in_col = [float('inf')] * m
     if w:
         # go to phase One
-        init_vars = set(range(m))
         A.append(w)
         ln = len(w)
+        init_vars = set(range(ln)) - artif_set
         # BV_in_row = [float('inf')] * n
         column = find_pivot_column(A[-1], ln)
         while column != ln:
@@ -61,8 +62,8 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
             div = A[row][column]
             if div != 1:
                 for i in range(ln):
-                    A[row][i] /= div
-                rhs[row] /= div
+                    A[row][i] = A[row][i] / div + 0
+                rhs[row] = rhs[row] / div + 0
 
             # complete row reduction by elimination
             for j in range(n + 1):
@@ -98,8 +99,8 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
                         # normalize row
                         if div != 1:
                             for i in range(ln):
-                                A[row][i] /= div
-                            rhs[row] /= div
+                                A[row][i] = A[row][i] / div + 0
+                            rhs[row] = rhs[row] / div + 0
 
                         # complete row reduction by elimination
                         for j in range(n):          # range value differs, attention
@@ -119,10 +120,13 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
                     r[column] = 1
                     rhs[row] = 0
                     A[row] = r
+            else:
+                # no BV in that column, add it to iterated
+                iterated_set.add(column)
             
         # prepare tableau for phase Two
         A[-1] = z + [0] * (ln - m)
-        rng = set(range(ln - 1)) - iterated_set
+        rng = set(range(ln)) - iterated_set
         ln = len(w) - len(artif_set)
         # check columns in z row to be 0 if that column contains BV
         for i in range(m):
@@ -136,7 +140,7 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
 
         """Start Phase II"""
         column = find_pivot_column(A[-1], ln, rng)
-        while column != ln:
+        while column != len(rng):
             row = find_pivot_row(A, rhs, column, n)
             if row == -1:
                 return 1, []
@@ -144,15 +148,15 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
             div = A[row][column]
             # relax tableau row
             if div != 1:
-                for i in range(ln):
-                    A[row][i] /= div
-                rhs[row] /= div
+                for i in rng:
+                    A[row][i] = A[row][i] / div + 0
+                rhs[row] = rhs[row] / div + 0
 
             # complete row reduction by elimination
             for j in range(n + 1):
                 if j != row and A[j][column]: 
                     div = -A[j][column] / A[row][column]
-                    for k in range(ln):
+                    for k in rng:
                         A[j][k] += A[row][k] * div
                     rhs[j] += rhs[row] * div
 
@@ -184,8 +188,8 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
             # relax tableau row
             if div != 1:
                 for i in range(n + m):
-                    A[row][i] /= div
-                rhs[row] /= div
+                    A[row][i] = A[row][i] / div + 0
+                rhs[row] = rhs[row] / div + 0
 
             # complete row reduction by elimination
             for j in range(n + 1):
