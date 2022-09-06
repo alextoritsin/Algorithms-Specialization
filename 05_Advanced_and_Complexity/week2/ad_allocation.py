@@ -1,15 +1,19 @@
 # python3
 from sys import stdin
 
+TOL = 1e-7
 
 def find_pivot_row(A, rhs, col, n):
-    min_elem = float('inf')
+    
+    best_ratio = float('inf')
     row = -1
     for j in range(n):
         if A[j][col] > 0:
-            res = rhs[j] / A[j][col]
-            if res < min_elem:
-                min_elem = res
+            cur_ratio = rhs[j] / A[j][col]
+            is_same_ration = abs(best_ratio - cur_ratio) <= TOL and (best_ratio - cur_ratio) >= 0
+            cond = is_same_ration if j < row else cur_ratio < best_ratio
+            if cond:
+                best_ratio = cur_ratio
                 row = j
     
     return row
@@ -20,13 +24,13 @@ def find_pivot_column(obj_func, length, rng=set()):
     if rng:
         index = len(rng)
         for i in rng:
-            if obj_func[i] < min_elem:
+            if abs(obj_func[i] - min_elem) > TOL and obj_func[i] < min_elem:
                 min_elem = obj_func[i]
                 index = i
     else:
         index = length
         for i in range(length):
-            if obj_func[i] < min_elem:
+            if abs(obj_func[i] - min_elem) > TOL and obj_func[i] < min_elem:
                 min_elem = obj_func[i]
                 index = i
     
@@ -85,8 +89,10 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
 
 
         # check for infeasibility
-        if rhs[-1] < 0:
+        if abs(rhs[-1]) > TOL:
             return -1, []
+        # if rhs[-1] < 0:
+        #     return -1, []
 
         # Iteration if BV is still in artificial variables
         iterated_set = set()
