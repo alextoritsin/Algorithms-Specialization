@@ -10,7 +10,7 @@ def find_pivot_row(A, rhs, col, n):
     for j in range(n):
         if A[j][col] > 0:
             cur_ratio = rhs[j] / A[j][col]
-            is_same_ration = abs(best_ratio - cur_ratio) <= TOL and (best_ratio - cur_ratio) >= 0
+            is_same_ration = (best_ratio - cur_ratio) <= TOL and (best_ratio - cur_ratio) >= 0
             cond = is_same_ration if j < row else cur_ratio < best_ratio
             if cond:
                 best_ratio = cur_ratio
@@ -89,7 +89,7 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
 
 
         # check for infeasibility
-        if abs(rhs[-1]) > TOL:
+        if abs(rhs[-1]) > 1e-5:
             return -1, []
         # if rhs[-1] < 0:
         #     return -1, []
@@ -201,7 +201,7 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
             for j in range(n + 1):
                 if j != row and A[j][column]: 
                     div = -A[j][column] / A[row][column]
-                    for k in range(2 * n):
+                    for k in range(n + m):
                         A[j][k] += A[row][k] * div
                     rhs[j] += rhs[row] * div
                     
