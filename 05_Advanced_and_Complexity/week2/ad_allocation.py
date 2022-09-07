@@ -1,13 +1,16 @@
 # python3
+
 from sys import stdin
 
 TOL = 1e-7
 
 def find_pivot_row(A, rhs, col, n):
-    
+    """Finds row in matrix A with smallest RHS/A[i][j] value
+    If value is not found, system is unbounded from above"""
     best_ratio = float('inf')
     row = -1
-    for j in range(n):
+    j = 0
+    while j < n:
         if A[j][col] > 0:
             cur_ratio = rhs[j] / A[j][col]
             is_same_ration = (best_ratio - cur_ratio) <= TOL and (best_ratio - cur_ratio) >= 0
@@ -15,11 +18,14 @@ def find_pivot_row(A, rhs, col, n):
             if cond:
                 best_ratio = cur_ratio
                 row = j
-    
+        j += 1
+
     return row
 
 
-def find_pivot_column(obj_func, length, rng=set()):
+def find_pivot_column(obj_func, length, rng:set=set()):
+    """Finds column in matrix with most negative value
+     in objective function (last row in martix A)"""
     min_elem = 0
     if rng:
         index = len(rng)
@@ -29,32 +35,29 @@ def find_pivot_column(obj_func, length, rng=set()):
                 index = i
     else:
         index = length
-        for i in range(length):
+        i = 0
+        while i < length:
             if abs(obj_func[i] - min_elem) > TOL and obj_func[i] < min_elem:
                 min_elem = obj_func[i]
                 index = i
-    
+            i += 1
+
     return index
 
 
-# def resolve_tableau(A, rhs, obj_func, exclude):
-#     while True:
-#         column = find_pivot_column(A[-1])
-#         if column == float('inf'):
-#             return A, rhs
-
-    
-#     pass
-
-
-
-def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
+def allocate_ads(n, m, A:list, rhs:list, z, w, artif_set:set, BV_in_row, BV_in_col):
+    """
+    Solves system of linear equations using Simplex Method.
+    Addition functions for elimination redundencies in code didn't used
+    because it increases running time of the algorithm
+    """
     if w:
+        # we have artificial variables
         # go to phase One
+        """Start Phase One"""
         A.append(w)
         ln = len(w)
         init_vars = set(range(ln)) - artif_set
-        # BV_in_row = [float('inf')] * n
         column = find_pivot_column(A[-1], ln)
         while column != ln:
             if column < m:
@@ -62,20 +65,27 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
             row = find_pivot_row(A, rhs, column, n)
             if row == -1:
                 return 1, []
+
             # normalize row
             div = A[row][column]
             if div != 1:
-                for i in range(ln):
+                i = 0
+                while i < ln:
                     A[row][i] = A[row][i] / div + 0
+                    i += 1
                 rhs[row] = rhs[row] / div + 0
-
+                    
             # complete row reduction by elimination
-            for j in range(n + 1):
-                if j != row and A[j][column]: 
-                    div = -A[j][column] / A[row][column]
-                    for k in range(ln):
-                        A[j][k] += A[row][k] * div
-                    rhs[j] += rhs[row] * div
+            i = 0
+            while i < (n + 1):
+                if i != row and A[i][column]: 
+                    div = -A[i][column] / A[row][column]
+                    k = 0 
+                    while k < ln:
+                        A[i][k] += A[row][k] * div
+                        k += 1
+                    rhs[i] += rhs[row] * div
+                i += 1
 
             # rearrange relation btw row and column of bv
             cur_col = BV_in_row[row]
@@ -87,14 +97,11 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
             
             column = find_pivot_column(A[-1], ln)
 
-
         # check for infeasibility
         if abs(rhs[-1]) > 1e-5:
             return -1, []
-        # if rhs[-1] < 0:
-        #     return -1, []
 
-        # Iteration if BV is still in artificial variables
+        # Iteration if basic value (BV) is still in artificial variables column
         iterated_set = set()
         for column in artif_set:
             if BV_in_col[column] != float('inf'):
@@ -109,7 +116,7 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
                             rhs[row] = rhs[row] / div + 0
 
                         # complete row reduction by elimination
-                        for j in range(n):          # range value differs, attention
+                        for j in range(n):          
                             if j != row and A[j][col]: 
                                 div = -A[j][col] / A[row][col]
                                 for k in range(ln):
@@ -122,6 +129,7 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
                         iterated_set.add(column)
                         break
                 else:
+                    # didn't find free column, just add equation of the form A[i][j] = 0
                     r = [0] * len(A[0])
                     r[column] = 1
                     rhs[row] = 0
@@ -179,6 +187,7 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
         return 0, [0 if row == float('inf') else rhs[row] for row in BV_in_col[:m]]
       
     else:
+        # Artificial variables hasn't added
         # skit to phase II
         z += [0] * n
         A.append(z)
@@ -191,7 +200,7 @@ def allocate_ads(n, m, A:list, rhs, z, w, artif_set, BV_in_row, BV_in_col):
                 return 1, []
             
             div = A[row][column]
-            # relax tableau row
+            # normalize row
             if div != 1:
                 for i in range(n + m):
                     A[row][i] = A[row][i] / div + 0
@@ -265,8 +274,6 @@ if __name__ == '__main__':
 
         # construct W objective function
         w = [0] * len(A[0])
-        # for row in e:
-        #     rhs[-1] += -rhs[row]
         
         artif_set = set(artif_colms)
         for i in range(len(w)):
