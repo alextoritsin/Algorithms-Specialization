@@ -43,17 +43,34 @@ def pivot_tableau(A:list, column:int, row:int, rhs:list,
     # normalize row
     div = A[row][column]
     if div != 1:
-        for i in indecis:
-            A[row][i] = A[row][i] / div + 0
+        i = 0
+        while i < len(indecis):
+            A[row][indecis[i]] = A[row][indecis[i]] / div + 0
+            i += 1
+        # for i in indecis:
+        #     A[row][i] = A[row][i] / div + 0
         rhs[row] = rhs[row] / div + 0
+        
+    i = 0
+    while i < (n + 1):
+        if i != row and A[i][column]:
+            div = -A[i][column] / A[row][column]
+            j = 0
+            while j < len(indecis):
+                A[i][indecis[j]] += A[row][indecis[j]] * div
+                j +=1
+            rhs[i] += rhs[row] * div
+        i += 1
 
+
+    
     # complete row reduction by elimination
-    for j in range(n + 1):
-        if j != row and A[j][column]: 
-            div = -A[j][column] / A[row][column]
-            for k in indecis:
-                A[j][k] += A[row][k] * div
-            rhs[j] += rhs[row] * div
+    # for j in range(n + 1):
+    #     if j != row and A[j][column]: 
+    #         div = -A[j][column] / A[row][column]
+    #         for k in indecis:
+    #             A[j][k] += A[row][k] * div
+    #         rhs[j] += rhs[row] * div
 
     # rearrange relation btw row and column of bv
     cur_col = BV_row[row]
