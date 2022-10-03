@@ -3,6 +3,11 @@ import itertools
 from math import factorial
 
 def ham_to_SAT(n, e_count, edges):
+    """
+    Reduces Hamilton path problem to SAT problem.
+    Outputs number of clauses and number of variables
+    and all clauses.
+    """
     # compute number of variables and clauses
     max_edges = n * (n - 1) // 2
     non_adj_edges = max_edges - e_count
@@ -45,7 +50,6 @@ def ham_to_SAT(n, e_count, edges):
             for k in range(n - 1):
                 print(-pos[k][i], -pos[k + 1][j], 0)
                 print(-pos[k][j], -pos[k + 1][i], 0)
-
 
 
 if __name__ == '__main__':
